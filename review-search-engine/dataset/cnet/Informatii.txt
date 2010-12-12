@@ -1,0 +1,1 @@
+Pe o pagina de User Reviews, review-urile sunt numite rateSum, apar intr-un element <div class="rateSumWrap"> </div> si fiecare review este intr-un element <li class="rateSum" messageId="XXXX"> </li>, cu clasa "rateSum first" pentru primul review.
