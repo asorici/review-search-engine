@@ -1,4 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404, HttpResponse, HttpResponseRedirect
+from utils import standard_search
 
 def home(request):
     if request.method == "GET":
@@ -8,9 +9,10 @@ def search(request):
     if request.method == "POST":
         try:
             query = request.POST['query']
-            return HttpResponse("Submitted query: " + query)
+            results = standard_search(query)
+            return render_to_response("results.html", {"submitted_query": query, "results" : results})
         except:
-            pass
+            return HttpResponseRedirect("/")
     else:
         return HttpResponseRedirect("/")
         
