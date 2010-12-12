@@ -1,0 +1,33 @@
+<html>
+<head></head>
+<body>
+	<div id="submitted_query" align="left" style="font: 24px Arial, Helvetica, sans-serif; color:#316d09; text-decoration:underline;">
+		Results for query: {{submitted_query}}
+	</div>
+	<br/>
+	<hr width="95%" />
+	<br/>	
+	<div id="result_div" align="center">
+		<table width="80%" align="center">
+		{% for res in results %}
+			<tr align="center">
+				<td style="padding-bottom: 20px;">
+					<div align="left">
+						<span style="font: 16px Arial, Helvetica, sans-serif;"><b>Title: </b><span>
+						<span style="font: 16px Arial, Helvetica, sans-serif;">{{ res.title }}<span>
+					</div>
+					<div align="left">
+						<span style="font: 16px Arial, Helvetica, sans-serif;"><b>Review Content: </b><span>
+						<span style="font: 16px Arial, Helvetica, sans-serif;">{{ res.content }}<span>
+					</div>
+				</td>
+			</tr>
+		{% endfor %}
+		</table>
+	</div>
+	<br/>
+	<hr width="95%" />
+	<br/>
+	<div id="backlink" align="left"><a href="/"><b>RETURN TO HOME SEARCH PAGE</b></a></div>
+</body>
+</html>
