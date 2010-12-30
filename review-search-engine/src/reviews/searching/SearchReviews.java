@@ -23,8 +23,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.FilterIndexReader;
@@ -125,15 +128,24 @@ public class SearchReviews {
 			reader = new OneNormsReader(reader, normsField);
 
 		Searcher searcher = new IndexSearcher(reader);
-		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
-
+		
+		
+		CharArraySet stopwords = new CharArraySet(StopAnalyzer.ENGLISH_STOP_WORDS_SET,true);
+        
+        stopwords.add("reviews");
+        stopwords.add("review");
+        stopwords.add("user");
+        stopwords.add("users");
+        
+        StandardAnalyzer standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30, stopwords);
+		
 		BufferedReader in = null;
 		if (queries != null) {
 			in = new BufferedReader(new FileReader(queries));
 		} else {
 			in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
 		}
-		QueryParser parser = new QueryParser(Version.LUCENE_30, field, analyzer);
+		QueryParser parser = new QueryParser(Version.LUCENE_30, field, standardAnalyzer);
 		while (true) {
 			if (queries == null) // prompt the user
 				System.out.println("Enter query: ");
