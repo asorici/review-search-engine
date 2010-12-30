@@ -1,4 +1,4 @@
-package org.apache.lucene.demo;
+package reviews.indexing;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -85,3 +85,4 @@ public class HTMLDocument {
   private HTMLDocument() {}
 }
     
+

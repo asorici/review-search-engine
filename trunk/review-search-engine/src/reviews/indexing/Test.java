@@ -1,5 +1,8 @@
 package reviews.indexing;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.SimpleAnalyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -14,10 +17,13 @@ import org.apache.lucene.util.Version;
 import java.io.IOException;
 
 public class Test {
+
 	public static void main(String[] args) throws IOException, ParseException {
 		// 0. Specify the analyzer for tokenizing text.
 		// The same analyzer should be used for indexing and searching
-		StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_CURRENT);
+		StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
+
+		Analyzer an = new SimpleAnalyzer();
 
 		// 1. create the index
 		Directory index = new RAMDirectory();
