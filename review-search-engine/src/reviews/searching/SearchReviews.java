@@ -22,10 +22,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.CharBuffer;
 import java.util.Date;
-import java.util.Set;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -277,7 +276,7 @@ public class SearchReviews {
 				}
 
 				Document doc = searcher.doc(hits[i].doc);
-
+				
 				String path = doc.get("path");
 				if (path != null) {
 					System.out.println((i + 1) + ". " + path);
@@ -287,6 +286,7 @@ public class SearchReviews {
 
 						System.out.println("*** " + doc);
 					}
+					
 				} else {
 					System.out.println((i + 1) + ". "
 							+ "No path for this document");

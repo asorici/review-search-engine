@@ -22,8 +22,10 @@ def standard_search(query):
     #### create return structure ####
     results = []
     
+    
     for scoreDoc in scoreDocs:
         doc = searcher.doc(scoreDoc.doc)
+        print doc
         resentry = { "title": doc.get("title") , "content": doc.get("summary") }
         results.append(resentry)
         
