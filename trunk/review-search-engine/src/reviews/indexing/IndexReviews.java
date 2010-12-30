@@ -17,6 +17,8 @@ package reviews.indexing;
  * limitations under the License.
  */
 
+import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
@@ -29,6 +31,7 @@ import org.apache.lucene.util.Version;
 import java.io.File;
 import java.util.Date;
 import java.util.Arrays;
+import java.util.Set;
 
 /** Indexer for HTML files. */
 public class IndexReviews {
@@ -78,8 +81,18 @@ public class IndexReviews {
                                 deleting = true;
                                 indexDocs(root, index, create);
                         }
+                        
+                       CharArraySet stopwords = new CharArraySet(StopAnalyzer.ENGLISH_STOP_WORDS_SET,true);
+                        
+                        stopwords.add("reviews");
+                        stopwords.add("review");
+                        stopwords.add("user");
+                        stopwords.add("users");
+                        
+                        StandardAnalyzer standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30, stopwords);
+                        
                         writer = new IndexWriter(FSDirectory.open(index),
-                                        new StandardAnalyzer(Version.LUCENE_30), create,
+                                        standardAnalyzer, create,
                                         new IndexWriter.MaxFieldLength(1000000));
                         
                         indexDocs(root, index, create); // add new docs
