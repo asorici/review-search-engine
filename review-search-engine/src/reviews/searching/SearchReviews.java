@@ -119,7 +119,7 @@ public class SearchReviews {
 
 		IndexReader reader = IndexReader.open(
 				FSDirectory.open(new File(index)), true); // only searching, so
-															// read-only=true
+		// read-only=true
 
 		if (normsField != null)
 			reader = new OneNormsReader(reader, normsField);
@@ -265,12 +265,15 @@ public class SearchReviews {
 				}
 
 				Document doc = searcher.doc(hits[i].doc);
+
 				String path = doc.get("path");
 				if (path != null) {
 					System.out.println((i + 1) + ". " + path);
 					String title = doc.get("title");
 					if (title != null) {
 						System.out.println("   Title: " + doc.get("title"));
+
+						System.out.println("*** " + doc);
 					}
 				} else {
 					System.out.println((i + 1) + ". "
