@@ -62,7 +62,7 @@ public class HTMLDocument {
 				Field.Index.NOT_ANALYZED));
 
 		// Add the uid as a field, so that index can be incrementally
-		// maintained.
+		// maintained.     
 		// This field is not stored with document, it is indexed, but it is not
 		// tokenized prior to indexing.
 		doc.add(new Field("uid", uid(f), Field.Store.NO,
