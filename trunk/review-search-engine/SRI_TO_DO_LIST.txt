@@ -1,0 +1,13 @@
+for today:	- basic functionlity: feature storage and retrieval (serialized Map (feature_type, string_value + score?))  - Anca 
+
+TO DO:
+ - Scoring for ranked retrieval
+	- opinion analysis - positive or negative conotation of features - Andrei
+
+ - query analysis:
+	- type: only product vs product and features vs only featurs	- Alex
+        - query expansion
+
+ - interface upgrade	- Costin
+	- nicer view
+ - crawling		- Costin (de mana)
