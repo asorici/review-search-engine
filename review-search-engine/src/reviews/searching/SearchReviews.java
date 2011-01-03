@@ -22,13 +22,21 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.CharBuffer;
+import java.io.Reader;
 import java.util.Date;
+import java.util.Set;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.StopAnalyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.cn.smart.SentenceTokenizer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
+import org.apache.lucene.demo.html.HTMLParser;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.index.FilterIndexReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.QueryParser;
@@ -127,24 +135,26 @@ public class SearchReviews {
 			reader = new OneNormsReader(reader, normsField);
 
 		Searcher searcher = new IndexSearcher(reader);
-		
-		
-		CharArraySet stopwords = new CharArraySet(StopAnalyzer.ENGLISH_STOP_WORDS_SET,true);
-        
-        stopwords.add("reviews");
-        stopwords.add("review");
-        stopwords.add("user");
-        stopwords.add("users");
-        
-        StandardAnalyzer standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30, stopwords);
-		
+
+		CharArraySet stopwords = new CharArraySet(
+				StopAnalyzer.ENGLISH_STOP_WORDS_SET, true);
+
+		stopwords.add("reviews");
+		stopwords.add("review");
+		stopwords.add("user");
+		stopwords.add("users");
+
+		StandardAnalyzer standardAnalyzer = new StandardAnalyzer(
+				Version.LUCENE_30, stopwords);
+
 		BufferedReader in = null;
 		if (queries != null) {
 			in = new BufferedReader(new FileReader(queries));
 		} else {
 			in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
 		}
-		QueryParser parser = new QueryParser(Version.LUCENE_30, field, standardAnalyzer);
+		QueryParser parser = new QueryParser(Version.LUCENE_30, field,
+				standardAnalyzer);
 		while (true) {
 			if (queries == null) // prompt the user
 				System.out.println("Enter query: ");
@@ -222,6 +232,21 @@ public class SearchReviews {
 		searcher.search(query, streamingHitCollector);
 	}
 
+	public static void displayTokenStream(TokenStream tokenStream)
+			throws IOException {
+
+		TermAttribute termAtt = (TermAttribute) tokenStream
+				.getAttribute(TermAttribute.class);
+		TypeAttribute typeAtt = (TypeAttribute) tokenStream
+				.getAttribute(TypeAttribute.class);
+
+		while (tokenStream.incrementToken()) {
+			System.out.println(termAtt.term());
+			System.out.println("Type: " + typeAtt.type());
+			System.out.println();
+		}
+	}
+
 	/**
 	 * This demonstrates a typical paging search scenario, where the search
 	 * engine presents pages of size n to the user. The user can then go to the
@@ -276,17 +301,35 @@ public class SearchReviews {
 				}
 
 				Document doc = searcher.doc(hits[i].doc);
-				
+
 				String path = doc.get("path");
 				if (path != null) {
 					System.out.println((i + 1) + ". " + path);
 					String title = doc.get("title");
-					if (title != null) {
-						System.out.println("   Title: " + doc.get("title"));
+					if (title != null)
+				;//		System.out.println("Title: " + doc.get("title"));
 
-						System.out.println("*** " + doc);
-					}
+					HTMLParser parser = new HTMLParser(new File(path));
+
+					Reader reader = parser.getReader();
+
+					SentenceTokenizer sentTok = new SentenceTokenizer(reader);
 					
+
+					while(sentTok.incrementToken()){
+						displayTokenStream(sentTok);
+					}
+					/*
+					 * String contents = ""; int c; while ((c=reader.read()) !=
+					 * -1) {
+					 * 
+					 * char buf[] = Character.toChars(c); contents +=
+					 * String.valueOf(buf); }
+					 * 
+					 * System.out.println("contents ");
+					 * System.out.println(contents);
+					 */
+
 				} else {
 					System.out.println((i + 1) + ". "
 							+ "No path for this document");
