@@ -159,8 +159,10 @@ public class SearchReviews {
 		} else {
 			in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
 		}
+		
 		QueryParser parser = new QueryParser(Version.LUCENE_30, field,
 				standardAnalyzer);
+		
 		while (true) {
 			if (queries == null) // prompt the user
 				System.out.println("Enter query: ");
@@ -314,8 +316,9 @@ public class SearchReviews {
 					String title = doc.get("title");
 					if (title != null) ;// System.out.println("Title: " + doc.get("title"));
 					
-					HTMLParser parser = new HTMLParser(new File(path));
-					Reader reader = parser.getReader();
+			//		HTMLParser parser = new HTMLParser(new File(path));
+			//		Reader reader = parser.getReader();
+					
 					/*
 					SentenceTokenizer sentTok = new SentenceTokenizer(reader);
 					while (sentTok.incrementToken()) {
@@ -323,7 +326,7 @@ public class SearchReviews {
 					}
 					*/
 					
-					String contents = "";
+				/*	String contents = "";
 					int c;
 					while ((c = reader.read()) != -1) {
 						char buf[] = Character.toChars(c);
@@ -355,9 +358,10 @@ public class SearchReviews {
 							System.out.print(word + "  ");
 						}
 						System.out.println();
-					}
-				    
-				    
+					}			    
+				 */
+					
+					
 
 				} else {
 					System.out.println((i + 1) + ". " + "No path for this document");

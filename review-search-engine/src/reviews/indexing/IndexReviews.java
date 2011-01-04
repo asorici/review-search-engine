@@ -17,6 +17,16 @@ package reviews.indexing;
  * limitations under the License.
  */
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -28,19 +38,39 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-import java.io.File;
-import java.util.Date;
-import java.util.Arrays;
-
 /** Indexer for HTML files. */
 public class IndexReviews {
+
+	static final Set<String> FEATURE_SET = loadFeaturesFromFile("features.txt");
+
 	private IndexReviews() {
+	
 	}
 
 	private static boolean deleting = false; // true during deletion pass
 	private static IndexReader reader; // existing index
 	private static IndexWriter writer; // new index being built
 	private static TermEnum uidIter; // document id iterator
+
+	private static Set<String> loadFeaturesFromFile(String filename) {
+
+		Set<String> features = new HashSet<String>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(new File(
+					filename)));
+
+			String line;
+			while ((line = br.readLine()) != null) {
+				features.add(line);
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return features;
+	}
 
 	/** Indexer for HTML files. */
 	public static void main(String[] argv) {
