@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.StopAnalyzer;
@@ -46,7 +48,13 @@ import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-import reviews.indexing.tokenizing.SentenceTokenizer;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.util.CoreMap;
 
 /** Simple command-line based search demo. */
 public class SearchReviews {
@@ -304,33 +312,55 @@ public class SearchReviews {
 				if (path != null) {
 					System.out.println((i + 1) + ". " + path);
 					String title = doc.get("title");
-					if (title != null)
-				;//		System.out.println("Title: " + doc.get("title"));
-
-					HTMLParser parser = new HTMLParser(new File(path));
-
-					Reader reader = parser.getReader();
-
-					SentenceTokenizer sentTok = new SentenceTokenizer(reader);
+					if (title != null) ;// System.out.println("Title: " + doc.get("title"));
 					
-
-					while(sentTok.incrementToken()){
+					HTMLParser parser = new HTMLParser(new File(path));
+					Reader reader = parser.getReader();
+					/*
+					SentenceTokenizer sentTok = new SentenceTokenizer(reader);
+					while (sentTok.incrementToken()) {
 						displayTokenStream(sentTok);
 					}
-					/*
-					 * String contents = ""; int c; while ((c=reader.read()) !=
-					 * -1) {
-					 * 
-					 * char buf[] = Character.toChars(c); contents +=
-					 * String.valueOf(buf); }
-					 * 
-					 * System.out.println("contents ");
-					 * System.out.println(contents);
-					 */
+					*/
+					
+					String contents = "";
+					int c;
+					while ((c = reader.read()) != -1) {
+						char buf[] = Character.toChars(c);
+						contents += String.valueOf(buf);
+					}
+
+					//System.out.println("contents ");
+					//System.out.println(contents);
+					
+					// creates a StanfordCoreNLP object, with POS tagging, parsing 
+					Properties props = new Properties();
+				    props.put("annotators", "tokenize, ssplit");
+				    StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+				    Annotation document = new Annotation(contents);
+				    
+				    // run all Annotators on this text
+				    pipeline.annotate(document);
+				    List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+				    
+					for (CoreMap sentence : sentences) {
+						//System.out.println("sentence: " + sentence.toString());
+						System.out.println("sentence: " + sentence.get(TextAnnotation.class));
+						
+						// traversing the words in the current sentence
+						System.out.println("Has the following words: ");
+						for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
+							// this is the text of the token
+							String word = token.get(TextAnnotation.class);
+							System.out.print(word + "  ");
+						}
+						System.out.println();
+					}
+				    
+				    
 
 				} else {
-					System.out.println((i + 1) + ". "
-							+ "No path for this document");
+					System.out.println((i + 1) + ". " + "No path for this document");
 				}
 
 			}
