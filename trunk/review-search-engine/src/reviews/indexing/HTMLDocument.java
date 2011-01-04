@@ -17,15 +17,35 @@ package reviews.indexing;
  * limitations under the License.
  */
 
-import java.io.*;
-import java.nio.CharBuffer;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
-import org.apache.lucene.document.*;
 import org.apache.lucene.demo.html.HTMLParser;
+import org.apache.lucene.document.DateTools;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.util.CoreMap;
 
 /** A utility for making Lucene Documents for HTML documents. */
 
 public class HTMLDocument {
+
 	static char dirSep = System.getProperty("file.separator").charAt(0);
 
 	public static String uid(File f) {
@@ -62,7 +82,7 @@ public class HTMLDocument {
 				Field.Index.NOT_ANALYZED));
 
 		// Add the uid as a field, so that index can be incrementally
-		// maintained.     
+		// maintained.
 		// This field is not stored with document, it is indexed, but it is not
 		// tokenized prior to indexing.
 		doc.add(new Field("uid", uid(f), Field.Store.NO,
@@ -71,14 +91,74 @@ public class HTMLDocument {
 		FileInputStream fis = new FileInputStream(f);
 		HTMLParser parser = new HTMLParser(fis);
 
-		// Add the tag-stripped contents as a Reader-valued Text field so it
-		// will
-		// get tokenized and indexed.
+		
+		Reader reader = parser.getReader();
 
+		// getting text content
+		String contents = "";
+		int c;
+		while ((c = reader.read()) != -1) {
+			char buf[] = Character.toChars(c);
+			contents += String.valueOf(buf);
+		}
 
-	
-		doc.add(new Field("contents", parser.getReader()));
+		Set<String> featureSet = new HashSet<String>();
+		String features = "";
+		
+		HashMap<String, FeatureMapData> featureMap = new HashMap<String, FeatureMapData>();
+
+		// creates a StanfordCoreNLP object, with POS tagging, parsing
+		Properties props = new Properties();
+		props.put("annotators", "tokenize, ssplit");
+		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+		Annotation document = new Annotation(contents);
+
+		// run all Annotators on this text
+		pipeline.annotate(document);
+		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+
+		for (CoreMap sentence : sentences) {
+			// System.out.println("sentence: " + sentence.toString());
+			//System.out.println("sentence: "+ sentence.get(TextAnnotation.class));
+
+			// traversing the words in the current sentence
+			//System.out.println("Has the following words: ");
+			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
+				// this is the text of the token
+				String word = token.get(TextAnnotation.class);
+
+				if (IndexReviews.FEATURE_SET.contains(word)) {
+					featureSet.add(word);
+
+					featureMap.put(word, new FeatureMapData(sentence
+							.get(TextAnnotation.class), 0.0, true));
+				}
 				
+		//		System.out.print(word + "  ");
+			}
+		//	System.out.println();
+
+		}
+
+		for(String s:featureSet)
+			features += s + " ";
+		
+		System.out.println(features);
+		doc.add(new Field("features", features, Field.Store.YES, Field.Index.ANALYZED));
+		
+		JSONObject serializedFeatureMap = new JSONObject();
+		
+		try {
+			serializedFeatureMap.put("featureMap", featureMap);
+
+			doc.add(new Field("feature-contents", serializedFeatureMap
+					.toString(), Field.Store.YES, Field.Index.NO));
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+	//	doc.add(new Field("contents", parser.getReader()));
 		
 		// Add the summary as a field that is stored and returned with
 		// hit documents for display.
