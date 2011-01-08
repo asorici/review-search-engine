@@ -38,13 +38,34 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+
 /** Indexer for HTML files. */
 public class IndexReviews {
 
-	static final Set<String> FEATURE_SET = loadFeaturesFromFile("features.txt");
-
-	private IndexReviews() {
+	public static final Set<String> FEATURE_SET = loadFeaturesFromFile("features.txt");
+	public static final CharArraySet STOPWORDS = readStopWords("more_stopwords.txt");
 	
+	private static CharArraySet readStopWords(String filename){
+			
+		CharArraySet stopwords = new CharArraySet(StopAnalyzer.ENGLISH_STOP_WORDS_SET, true);
+
+		try {
+			BufferedReader br;
+			br = new BufferedReader(new FileReader(new File(filename)));
+			String line;
+			while ((line = br.readLine()) != null) {
+				stopwords.add(line.trim());
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return stopwords;
+	}
+
+	private IndexReviews() {	
 	}
 
 	private static boolean deleting = false; // true during deletion pass
@@ -111,16 +132,8 @@ public class IndexReviews {
 				indexDocs(root, index, create);
 			}
 
-			CharArraySet stopwords = new CharArraySet(
-					StopAnalyzer.ENGLISH_STOP_WORDS_SET, true);
-
-			stopwords.add("reviews");
-			stopwords.add("review");
-			stopwords.add("user");
-			stopwords.add("users");
-
-			StandardAnalyzer standardAnalyzer = new StandardAnalyzer(
-					Version.LUCENE_30, stopwords);
+			
+			StandardAnalyzer standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30, STOPWORDS);
 
 			writer = new IndexWriter(FSDirectory.open(index), standardAnalyzer,
 					create, new IndexWriter.MaxFieldLength(1000000));

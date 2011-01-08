@@ -22,18 +22,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.Date;
-import java.util.List;
-import java.util.Properties;
 
-import org.apache.lucene.analysis.CharArraySet;
-import org.apache.lucene.analysis.StopAnalyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
-import org.apache.lucene.demo.html.HTMLParser;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.FilterIndexReader;
 import org.apache.lucene.index.IndexReader;
@@ -48,16 +42,12 @@ import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
-import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.util.CoreMap;
+import reviews.indexing.IndexReviews;
 
 /** Simple command-line based search demo. */
 public class SearchReviews {
+
+	
 
 	/**
 	 * Use the norms from one field for all fields. Norms are read into memory,
@@ -80,6 +70,8 @@ public class SearchReviews {
 		}
 	}
 
+	
+	
 	private SearchReviews() {
 	}
 
@@ -141,17 +133,8 @@ public class SearchReviews {
 			reader = new OneNormsReader(reader, normsField);
 
 		Searcher searcher = new IndexSearcher(reader);
-
-		CharArraySet stopwords = new CharArraySet(
-				StopAnalyzer.ENGLISH_STOP_WORDS_SET, true);
-
-		stopwords.add("reviews");
-		stopwords.add("review");
-		stopwords.add("user");
-		stopwords.add("users");
-
-		StandardAnalyzer standardAnalyzer = new StandardAnalyzer(
-				Version.LUCENE_30, stopwords);
+		
+		StandardAnalyzer standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30, IndexReviews.STOPWORDS);
 
 		BufferedReader in = null;
 		if (queries != null) {
@@ -183,6 +166,7 @@ public class SearchReviews {
 				Date start = new Date();
 				for (int i = 0; i < repeat; i++) {
 					searcher.search(query, null, 100);
+					
 				}
 				Date end = new Date();
 				System.out.println("Time: " + (end.getTime() - start.getTime())
