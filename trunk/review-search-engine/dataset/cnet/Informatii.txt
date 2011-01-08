@@ -1,1 +1,15 @@
-Pe o pagina de User Reviews, review-urile sunt numite rateSum, apar intr-un element <div class="rateSumWrap"> </div> si fiecare review este intr-un element <li class="rateSum" messageId="XXXX"> </li>, cu clasa "rateSum first" pentru primul review.
+
+Editor's reviews
+ 
+Review-ul se afla intr-un div cu clasa "editorsTake" (la finalul clasei este un comment "<!-- editorsTake -->" 
+asa ca se poate identifica usor si de mana).
+
+User reviews:
+
+De pe prima pagina a produsului, trebuie navigat cu ajutorul unui tag de forma: 
+<a href="/digital-cameras/sony-cyber-shot-dsc/4852-6501_7-33763789.html" class="readMore">See all user reviews</a> 
+(apare de 2 ori in pagina asa, si o data cu un <span> la text).
+
+Pe o pagina de User Reviews, review-urile sunt numite rateSum, apar intr-un element <div class="rateSumWrap"> </div> 
+si fiecare review este intr-un element <li class="rateSum" messageId="XXXX"> </li>, cu clasa "rateSum first" pentru 
+primul review.
