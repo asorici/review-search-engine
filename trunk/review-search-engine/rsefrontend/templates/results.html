@@ -14,18 +14,28 @@
 				<td style="padding-bottom: 20px;">
 					<div align="left">
 						<span style="font: 16px Arial, Helvetica, sans-serif;"><b>Title: </b><span>
-						<span style="font: 16px Arial, Helvetica, sans-serif;">{{ res.title }}<span>
+						<span style="font: 16px Arial, Helvetica, sans-serif;"><b>{{ res.title }}</b><span>
 					</div>
 					<div align="left">
 						<span style="font: 16px Arial, Helvetica, sans-serif;"><b>Pros: </b><span><br/>
-						{% for feat, comment in res.positiveComments.items %}
-							<span style="font: 16px Arial, Helvetica, sans-serif;"><b>{{ feat }}:</b> {{ comment.sentence }}<span><br/>
+						{% for feat, comments in res.positiveComments.items %}
+							<span style="font: 16px Arial, Helvetica, sans-serif; margin-left: 10px;"><b>{{ feat }}:</b><span><br/>
+							<ul>
+							{% for comment in comments %}
+								<li style="font: 16px Arial, Helvetica, sans-serif; margin-left:30px;">{{ comment.sentence }}</span><br/>								
+							{% endfor %}
+							</ul>
 						{% endfor %}
 					</div>
 					<div align="left">
 						<span style="font: 16px Arial, Helvetica, sans-serif;"><b>Cons: </b><span><br/>
-						{% for feat, comment in res.negativeComments.items %}
-							<span style="font: 16px Arial, Helvetica, sans-serif;"><b>{{ feat }}:</b> {{ comment.sentence }}<span><br/>
+						{% for feat, comments in res.negativeComments.items %}
+							<span style="font: 16px Arial, Helvetica, sans-serif; margin-left: 10px;"><b>{{ feat }}:</b><span><br/>
+							<ul>
+							{% for comment in comments %}
+								<li style="font: 16px Arial, Helvetica, sans-serif; margin-left:30px;">{{ comment.sentence }}</span><br/>								
+							{% endfor %}
+							</ul>
 						{% endfor %}
 					</div>
 				</td>
