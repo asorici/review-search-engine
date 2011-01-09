@@ -1,18 +1,28 @@
 package reviews.indexing.tokenizing.SWN;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Set;
 
 public class SWN {
 	
-	String swnPath;
-	HashMap<String, SWNData> dictionary;
+	private String swnPath;
+	private HashMap<String, SWNData> dictionary;
+	
+	public SWN() {
+		swnPath = "dataset" + File.separator + "SWN" + File.separator + "SentiWordNet_1.0.1.txt";
+		loadSWN();
+	}
 	
 	public SWN(String filepath) {
 		swnPath = filepath;
 		loadSWN();
+	}
+	
+	public static String createID(String word, String pos) {
+		return word + "#" + pos;
 	}
 	
 	private void loadSWN() {
@@ -38,7 +48,7 @@ public class SWN {
 					
 					SWNData wordData;
 					// build word id for dictionary: word#pos
-					String id = wordTokens[0] + "#" + data[0];
+					String id = createID(wordTokens[0], data[0]);
 					
 					if ((wordData = dictionary.get(id)) != null) {
 						wordData.addSense(Integer.parseInt(wordTokens[2]),
@@ -59,8 +69,12 @@ public class SWN {
 		}
 	}
 	
+	public SWNData extractWordData(String wordID) {
+		return dictionary.get(wordID);
+	}
+	
 	public SWNData extractWordData(String word, String pos) {
-		return dictionary.get(word + "#" + pos);
+		return extractWordData(createID(word, pos));
 	}
 	
 	private int testClassifyScore(double score) {

@@ -47,6 +47,8 @@ public class IndexReviews {
 	public static final Set<String> FEATURE_SET = loadFeaturesFromFile("features.txt");
 	public static final CharArraySet STOPWORDS = readStopWords("more_stopwords.txt");
 	
+	public static SWN swn = new SWN();
+	
 	private static CharArraySet readStopWords(String filename){
 			
 		CharArraySet stopwords = new CharArraySet(StopAnalyzer.ENGLISH_STOP_WORDS_SET, true);
@@ -97,23 +99,7 @@ public class IndexReviews {
 
 	/** Indexer for HTML files. */
 	public static void main(String[] argv) {
-		
-		// Voi curata mai tarziu aici :P - Andrei
-//		SWN senti = new SWN("dataset" + File.separator + "SWN" + File.separator + "SentiWordNet_1.0.1.txt");
-		
-/*		System.out.println("big: " + senti.extractWordData("big", "a").getLabel() + "[" + senti.extractWordData("big", "a").computeScore() +"]");
-		System.out.println("small: " + senti.extractWordData("small", "a").getLabel() + "[" + senti.extractWordData("small", "a").computeScore() +"]");
-		System.out.println("amazing: " + senti.extractWordData("amazing", "a").getLabel() + "[" + senti.extractWordData("amazing", "a").computeScore() +"]");
-		System.out.println("wonderful: " + senti.extractWordData("wonderful", "a").getLabel() + "[" + senti.extractWordData("wonderful", "a").computeScore() +"]");
-		System.out.println("clear: " + senti.extractWordData("clear", "a").getLabel() + "[" + senti.extractWordData("clear", "a").computeScore() +"]");
-		System.out.println("clearly: " + senti.extractWordData("clearly", "r").getLabel() + "[" + senti.extractWordData("clearly", "r").computeScore() +"]");
-*/
-		
-//		senti.testSWN(true);
-//		senti.testSWN(false);
-		
-//		System.exit(0);
-		
+
 		try {
 			File index = new File("index");
 			boolean create = false;
@@ -219,9 +205,8 @@ public class IndexReviews {
 				// recursively index them
 				indexDocs(new File(file, files[i]));
 
-		} else if (file.getPath().endsWith(".html") || // index .html files
-				file.getPath().endsWith(".htm")) {//|| // index .htm files
-//				file.getPath().endsWith(".txt")) { // index .txt files
+		} else if (file.getPath().endsWith(".html") ||		// index .html files
+				file.getPath().endsWith(".htm")) {			// index .htm files
 
 			if (uidIter != null) {
 				String uid = HTMLDocument.uid(file); // construct uid for doc
@@ -240,13 +225,13 @@ public class IndexReviews {
 						&& uidIter.term().text().compareTo(uid) == 0) {
 					uidIter.next(); // keep matching docs
 				} else if (!deleting) { // add new docs
-					Document doc = HTMLDocument.Document(file);
+					Document doc = HTMLDocument.Document(file, swn);
 
 					System.out.println("adding " + doc.get("path"));
 					writer.addDocument(doc);
 				}
 			} else { // creating a new index
-				Document doc = HTMLDocument.Document(file);
+				Document doc = HTMLDocument.Document(file, swn);
 				System.out.println("adding " + doc.get("path"));
 				writer.addDocument(doc); // add docs unconditionally
 			}
