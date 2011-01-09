@@ -96,11 +96,23 @@ def doFeatureSearch(query):
         negativeFeatureComments = {}
         for feat in featureMap["featureMap"].keys():
             #print feat
-            if featureMap["featureMap"][feat]["connotation"] == True:
-                positiveFeatureComments[feat] = featureMap["featureMap"][feat]
-            else:
-                negativeFeatureComments[feat] = featureMap["featureMap"][feat]
-        
+            positiveFeatureComments[feat] = []
+            negativeFeatureComments[feat] = []
+            
+            for fmd in featureMap["featureMap"][feat]:
+                if fmd["connotation"] == True:
+                    #positiveFeatureComments[feat] = featureMap["featureMap"][feat]
+                    positiveFeatureComments[feat].append(fmd)
+                else:
+                    #negativeFeatureComments[feat] = featureMap["featureMap"][feat]
+                    negativeFeatureComments[feat].append(fmd)
+            
+            if not positiveFeatureComments[feat]:
+                del positiveFeatureComments[feat]
+                
+            if not negativeFeatureComments[feat]:
+                del negativeFeatureComments[feat]
+                
         resentry = {"title": doc.get("title"), "content": doc.get("summary"), 
                     "positiveComments": positiveFeatureComments, "negativeComments": negativeFeatureComments }
         results.append(resentry)
