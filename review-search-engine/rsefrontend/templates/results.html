@@ -17,13 +17,6 @@
 						<span style="font: 16px Arial, Helvetica, sans-serif;">{{ res.title }}<span>
 					</div>
 					<div align="left">
-						<span style="font: 16px Arial, Helvetica, sans-serif;"><b>Review Content: </b><span>
-						<span style="font: 16px Arial, Helvetica, sans-serif;">{{ res.content }}<span>
-						<!-- 
-						<span style="font: 16px Arial, Helvetica, sans-serif;">{{ res.featureMap }}<span>
-						 -->
-					</div>
-					<div align="left">
 						<span style="font: 16px Arial, Helvetica, sans-serif;"><b>Pros: </b><span><br/>
 						{% for feat, comment in res.positiveComments.items %}
 							<span style="font: 16px Arial, Helvetica, sans-serif;"><b>{{ feat }}:</b> {{ comment.sentence }}<span><br/>
