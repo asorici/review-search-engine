@@ -1,4 +1,5 @@
 import simplejson
+from django.shortcuts import render_to_response, HttpResponse, HttpResponseRedirect
 
 from lucene import \
     QueryParser, IndexSearcher, StandardAnalyzer, SimpleFSDirectory, File, \
@@ -24,42 +25,19 @@ def doSearch(query):
     search_query = ""
     if product_query and not feature_query:
         search_query = "title:" + product_query
+        doProductSearch(search_query)
     elif feature_query and not product_query:
         search_query = "features:" + feature_query
+        doFeatureSearch(search_query)
     elif product_query and feature_query:
         search_query = "title:" + product_query + " AND " + "features:" + feature_query
-        
+        doProductFeatureSearch(search_query)
     
-    if search_query:    
-        formatted_query = parser.parse(search_query)
-        scoreDocs = searcher.search(formatted_query, 50).scoreDocs
-        
-        #### create return structure ####
-        results = []
-        
-        for scoreDoc in scoreDocs:
-            doc = searcher.doc(scoreDoc.doc)
-            featureMap = simplejson.loads(doc.get("feature-contents"))
-            
-            positiveFeatureComments = {}
-            negativeFeatureComments = {}
-            for feat in featureMap["featureMap"].keys():
-                #print feat
-                if featureMap["featureMap"][feat]["connotation"] == True:
-                    positiveFeatureComments[feat] = featureMap["featureMap"][feat]
-                else:
-                    negativeFeatureComments[feat] = featureMap["featureMap"][feat]
-            
-            resentry = { "title": doc.get("title"), "content": doc.get("summary"), 
-                        "positiveComments": positiveFeatureComments, "negativeComments": negativeFeatureComments }
-            results.append(resentry)
-            
-        return results
-    else:
-        return []
+    if not search_query:       
+        return HttpResponseRedirect("/")
 
     
-def standard_search(query):
+def doProductSearch(query):
     # create analyzer
     analyzer = StandardAnalyzer(Version.LUCENE_CURRENT)
     
@@ -74,11 +52,43 @@ def standard_search(query):
     
     for scoreDoc in scoreDocs:
         doc = searcher.doc(scoreDoc.doc)
-        print doc
-        resentry = { "title": doc.get("title") , "content": doc.get("summary") }
-        results.append(resentry)
+        featureMap = simplejson.loads(doc.get("feature-contents"))
         
-    return results
+        positiveFeatureComments = {}
+        negativeFeatureComments = {}
+        for feat in featureMap["featureMap"].keys():
+            #print feat
+            if featureMap["featureMap"][feat]["connotation"] == True:
+                positiveFeatureComments[feat] = featureMap["featureMap"][feat]
+            else:
+                negativeFeatureComments[feat] = featureMap["featureMap"][feat]
+        
+        resentry = {"title": doc.get("title"), "content": doc.get("summary"), 
+                    "positiveComments": positiveFeatureComments, "negativeComments": negativeFeatureComments }
+        results.append(resentry)
+    
+    return render_to_response("results.html", {"submitted_query": query, "results" : results})
+    
+
+def doProductFeatureSearch(query, sought_feature):
+    formatted_query = parser.parse(query)
+    scoreDocs = searcher.search(formatted_query, 50).scoreDocs
+        
+    #### create return structure ####
+    results = []
+    comments = []
+        
+    for scoreDoc in scoreDocs:
+        doc = searcher.doc(scoreDoc.doc)
+        featureMap = simplejson.loads(doc.get("feature-contents"))
+        
+        comments.append(featureMap["featureMap"][sought_feat]["sentence"])
+        resentry = {"feature": sought_feature, "title": doc.get("title"), "review_date": doc.get("modified"),  
+                    "comments": comments }
+        results.append(resentry)
+            
+    return render_to_response("search_by_product_and_feature_results.html", {"submitted_query": query, "results" : results})
+
 
 def extractFeatureQueryWords(query):
     import string

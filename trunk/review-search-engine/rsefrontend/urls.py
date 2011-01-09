@@ -4,6 +4,7 @@ import settings
 # Uncomment the next two lines to enable the admin:
 from core.views import * 
 from django.contrib import admin
+from django.views.generic.simple import direct_to_template
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -20,4 +21,5 @@ urlpatterns = patterns('',
     
     # serving static files
     (r'^rse_media/(?P<path>.*)$', 'django.views.static.serve', { 'document_root': settings.MEDIA_ROOT }),
+    (r'^product_feature_results/', direct_to_template, {'template': 'search_by_product_and_feature_results.html'}),
 )
