@@ -34,7 +34,10 @@ import org.apache.lucene.document.Field;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import reviews.indexing.tokenizing.ReviewContentCleaner;
+
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
@@ -91,7 +94,6 @@ public class HTMLDocument {
 		FileInputStream fis = new FileInputStream(f);
 		HTMLParser parser = new HTMLParser(fis);
 
-		
 		Reader reader = parser.getReader();
 
 		// getting text content
@@ -102,6 +104,8 @@ public class HTMLDocument {
 			contents += String.valueOf(buf);
 		}
 
+		ReviewContentCleaner rcc = new ReviewContentCleaner(contents);
+		
 		Set<String> featureSet = new HashSet<String>();
 		String features = "";
 		
@@ -109,23 +113,25 @@ public class HTMLDocument {
 
 		// creates a StanfordCoreNLP object, with POS tagging, parsing
 		Properties props = new Properties();
-		props.put("annotators", "tokenize, ssplit");
+		props.put("annotators", "tokenize, ssplit, pos");
+		props.put("pos.model", "left3words-wsj-0-18.tagger");
 		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-		Annotation document = new Annotation(contents);
+		Annotation document = new Annotation(rcc.getSummary());
 
 		// run all Annotators on this text
 		pipeline.annotate(document);
 		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
 
 		for (CoreMap sentence : sentences) {
-			// System.out.println("sentence: " + sentence.toString());
-			//System.out.println("sentence: "+ sentence.get(TextAnnotation.class));
+//			System.out.println("sentence: " + sentence.toString());
+//			System.out.println("sentence: "+ sentence.get(TextAnnotation.class));
 
 			// traversing the words in the current sentence
-			//System.out.println("Has the following words: ");
+			System.out.println("Has the following words: ");
 			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
 				// this is the text of the token
 				String word = token.get(TextAnnotation.class);
+				String pos = token.get(PartOfSpeechAnnotation.class);
 
 				if (IndexReviews.FEATURE_SET.contains(word)) {
 					featureSet.add(word);
@@ -134,9 +140,9 @@ public class HTMLDocument {
 							.get(TextAnnotation.class), 0.0, true));
 				}
 				
-		//		System.out.print(word + "  ");
+				System.out.print(word + "#" + pos + "  ");
 			}
-		//	System.out.println();
+			System.out.println();
 
 		}
 
@@ -161,7 +167,7 @@ public class HTMLDocument {
 	//	doc.add(new Field("contents", parser.getReader()));
 		
 		// Add the summary as a field that is stored and returned with
-		// hit documents for display.
+		// hit documents for display
 		doc.add(new Field("summary", parser.getSummary(), Field.Store.YES,
 				Field.Index.NO));
 
