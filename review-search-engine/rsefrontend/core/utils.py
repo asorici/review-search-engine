@@ -184,7 +184,7 @@ def extractFeatureQueryWords(query):
     aux_analyzer = StandardAnalyzer(Version.LUCENE_CURRENT)
     
     try:
-        file = open('/home/alex/eclipse-workspace/review-search-engine/features.txt', 'r')
+        file = open('../features.txt', 'r')
         
         featurelist = []
         for line in file.readlines():
