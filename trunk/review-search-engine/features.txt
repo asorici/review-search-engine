@@ -1,4 +1,5 @@
 image quality
+image
 sensor
 metering
 white balance
