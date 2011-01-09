@@ -68,6 +68,62 @@ public class HTMLDocument {
 		String url = uid.replace('\u0000', '/'); // replace nulls with slashes
 		return url.substring(0, url.lastIndexOf('/')); // remove date from end
 	}
+	
+	private static HashMap<String, ArrayList<FeatureMapData>> processReviewSegment(StanfordCoreNLP pipeline,
+			SWN swn, HashMap<String, ArrayList<FeatureMapData>> featureMap,
+			String segment, double scoreBonus, double scoreModifier) {
+		
+		Annotation document = new Annotation(segment);
+
+		// run all Annotators on this text
+		pipeline.annotate(document);
+		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+
+		OpinionAnalyzer opinion = new OpinionAnalyzer(swn);
+		
+		for (CoreMap sentence : sentences) {
+
+			// sentence features set, used to add a sentence for a feature only once
+			Set<String> sfSet = new HashSet<String>();
+			
+			// traversing the words in the current sentence
+//			System.out.println("Has the following words: ");
+			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
+				// this is the text of the token
+				String word = token.get(TextAnnotation.class);
+				String pos = token.get(PartOfSpeechAnnotation.class);	// used for debugging
+
+				if (IndexReviews.FEATURE_SET.contains(word)) {
+					sfSet.add(word);
+				}
+//				System.out.print(word + "#" + pos + "  ");
+			}
+//			System.out.println();
+//			System.out.println(opinion.getSentenceScore("", sentence));
+			
+			// for each identified feature, update featureMap
+			for (String word : sfSet) {
+				double score = opinion.getSentenceScore(word, sentence);
+				score += scoreBonus;		// apply score bonus
+				score *= scoreModifier;		// apply score modifier
+				
+				// check to see if we have any more sentences for this feature
+				ArrayList<FeatureMapData> featureFeedback = featureMap.get(word);
+				
+				if (featureFeedback == null) {
+					featureFeedback = new ArrayList<FeatureMapData>();
+				}
+				
+				// add a new sentence
+				featureFeedback.add(new FeatureMapData(sentence
+						.get(TextAnnotation.class), score, ((score >= 0) ? true : false)));
+				
+				featureMap.put(word, featureFeedback);
+			}
+		}
+		
+		return featureMap;
+	}
 
 	public static Document Document(File f, SWN swn) throws IOException,
 			InterruptedException {
@@ -109,9 +165,6 @@ public class HTMLDocument {
 		// clean the review content
 		ReviewContentCleaner rcc = new ReviewContentCleaner(contents);
 		
-		Set<String> featureSet = new HashSet<String>();
-		String features = "";
-		
 		HashMap<String, ArrayList<FeatureMapData>> featureMap = new HashMap<String, ArrayList<FeatureMapData>>();
 
 		// creates a StanfordCoreNLP object, with POS tagging, parsing
@@ -119,60 +172,24 @@ public class HTMLDocument {
 		props.put("annotators", "tokenize, ssplit, pos");
 		props.put("pos.model", "left3words-wsj-0-18.tagger");
 		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-		Annotation document = new Annotation(rcc.getSummary());
 
-		// run all Annotators on this text
-		pipeline.annotate(document);
-		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
 
-		OpinionAnalyzer opinion = new OpinionAnalyzer(swn);
+		// Here you can adjust the score bonus and the score modifier for review pros and cons.
+		// Default, score bonus is +2.0 for pros, -2.0 for cons and 0.0 for summary.
+		// Default, score modifier is 1.0 for all.
 		
-		for (CoreMap sentence : sentences) {
-//			System.out.println("sentence: " + sentence.toString());
-//			System.out.println("sentence: "+ sentence.get(TextAnnotation.class));
+		// process review pros
+		featureMap = processReviewSegment(pipeline, swn, featureMap, rcc.getPros(), 2.0, 1.0);
+		// process review cons
+		featureMap = processReviewSegment(pipeline, swn, featureMap, rcc.getCons(), -2.0, 1.0);
+		// process review summary
+		featureMap = processReviewSegment(pipeline, swn, featureMap, rcc.getSummary(), 0.0, 1.0);
 
-			// sentence features set
-			Set<String> sfSet = new HashSet<String>();
-			
-			// traversing the words in the current sentence
-//			System.out.println("Has the following words: ");
-			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
-				// this is the text of the token
-				String word = token.get(TextAnnotation.class);
-				String pos = token.get(PartOfSpeechAnnotation.class);	// used for debugging
-
-				if (IndexReviews.FEATURE_SET.contains(word)) {
-					sfSet.add(word);
-				}
-//				System.out.print(word + "#" + pos + "  ");
-			}
-//			System.out.println();
-//			System.out.println(opinion.getSentenceScore("", sentence));
-			
-			// for each identified feature, update featureMap
-			for (String word : sfSet) {
-				double score = opinion.getSentenceScore(word, sentence);
-				
-				// check to see if we have any more sentences for this feature
-				ArrayList<FeatureMapData> featureFeedback = featureMap.get(word);
-				
-				if (featureFeedback == null) {
-					featureFeedback = new ArrayList<FeatureMapData>();
-				}
-				
-				// add a new sentence
-				featureFeedback.add(new FeatureMapData(sentence
-						.get(TextAnnotation.class), score, ((score >= 0) ? true : false)));
-				
-				featureMap.put(word, featureFeedback);
-			}
-			
-			// add all new features to the review's featureSet
-			featureSet.addAll(sfSet);
-		}
-
-		for(String s:featureSet)
+		
+		String features = "";
+		for(String s : featureMap.keySet()) {
 			features += s + " ";
+		}
 		
 		System.out.println(features);
 		doc.add(new Field("features", features, Field.Store.YES, Field.Index.ANALYZED));
