@@ -38,6 +38,8 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+import reviews.indexing.tokenizing.SWN.SWN;
+
 
 /** Indexer for HTML files. */
 public class IndexReviews {
@@ -95,6 +97,23 @@ public class IndexReviews {
 
 	/** Indexer for HTML files. */
 	public static void main(String[] argv) {
+		
+		// Voi curata mai tarziu aici :P - Andrei
+//		SWN senti = new SWN("dataset" + File.separator + "SWN" + File.separator + "SentiWordNet_1.0.1.txt");
+		
+/*		System.out.println("big: " + senti.extractWordData("big", "a").getLabel() + "[" + senti.extractWordData("big", "a").computeScore() +"]");
+		System.out.println("small: " + senti.extractWordData("small", "a").getLabel() + "[" + senti.extractWordData("small", "a").computeScore() +"]");
+		System.out.println("amazing: " + senti.extractWordData("amazing", "a").getLabel() + "[" + senti.extractWordData("amazing", "a").computeScore() +"]");
+		System.out.println("wonderful: " + senti.extractWordData("wonderful", "a").getLabel() + "[" + senti.extractWordData("wonderful", "a").computeScore() +"]");
+		System.out.println("clear: " + senti.extractWordData("clear", "a").getLabel() + "[" + senti.extractWordData("clear", "a").computeScore() +"]");
+		System.out.println("clearly: " + senti.extractWordData("clearly", "r").getLabel() + "[" + senti.extractWordData("clearly", "r").computeScore() +"]");
+*/
+		
+//		senti.testSWN(true);
+//		senti.testSWN(false);
+		
+//		System.exit(0);
+		
 		try {
 			File index = new File("index");
 			boolean create = false;
@@ -201,8 +220,8 @@ public class IndexReviews {
 				indexDocs(new File(file, files[i]));
 
 		} else if (file.getPath().endsWith(".html") || // index .html files
-				file.getPath().endsWith(".htm") || // index .htm files
-				file.getPath().endsWith(".txt")) { // index .txt files
+				file.getPath().endsWith(".htm")) {//|| // index .htm files
+//				file.getPath().endsWith(".txt")) { // index .txt files
 
 			if (uidIter != null) {
 				String uid = HTMLDocument.uid(file); // construct uid for doc
