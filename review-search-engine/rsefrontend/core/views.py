@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404, HttpResponse, HttpResponseRedirect
-from utils import standard_search, doSearch
+from utils import doSearch
 
 def home(request):
     if request.method == "GET":
