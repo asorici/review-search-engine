@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +36,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import reviews.indexing.tokenizing.ReviewContentCleaner;
+import reviews.indexing.tokenizing.SWN.SWN;
 
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
@@ -67,11 +69,11 @@ public class HTMLDocument {
 		return url.substring(0, url.lastIndexOf('/')); // remove date from end
 	}
 
-	public static Document Document(File f) throws IOException,
+	public static Document Document(File f, SWN swn) throws IOException,
 			InterruptedException {
 		// make a new, empty document
 		Document doc = new Document();
-
+		
 		// Add the url as a field named "path". Use a field that is
 		// indexed (i.e. searchable), but don't tokenize the field into words.
 		doc.add(new Field("path", f.getPath().replace(dirSep, '/'),
@@ -104,12 +106,13 @@ public class HTMLDocument {
 			contents += String.valueOf(buf);
 		}
 
+		// clean the review content
 		ReviewContentCleaner rcc = new ReviewContentCleaner(contents);
 		
 		Set<String> featureSet = new HashSet<String>();
 		String features = "";
 		
-		HashMap<String, FeatureMapData> featureMap = new HashMap<String, FeatureMapData>();
+		HashMap<String, ArrayList<FeatureMapData>> featureMap = new HashMap<String, ArrayList<FeatureMapData>>();
 
 		// creates a StanfordCoreNLP object, with POS tagging, parsing
 		Properties props = new Properties();
@@ -122,28 +125,50 @@ public class HTMLDocument {
 		pipeline.annotate(document);
 		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
 
+		OpinionAnalyzer opinion = new OpinionAnalyzer(swn);
+		
 		for (CoreMap sentence : sentences) {
 //			System.out.println("sentence: " + sentence.toString());
 //			System.out.println("sentence: "+ sentence.get(TextAnnotation.class));
 
+			// sentence features set
+			Set<String> sfSet = new HashSet<String>();
+			
 			// traversing the words in the current sentence
-			System.out.println("Has the following words: ");
+//			System.out.println("Has the following words: ");
 			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
 				// this is the text of the token
 				String word = token.get(TextAnnotation.class);
-				String pos = token.get(PartOfSpeechAnnotation.class);
+				String pos = token.get(PartOfSpeechAnnotation.class);	// used for debugging
 
 				if (IndexReviews.FEATURE_SET.contains(word)) {
-					featureSet.add(word);
-
-					featureMap.put(word, new FeatureMapData(sentence
-							.get(TextAnnotation.class), 0.0, true));
+					sfSet.add(word);
+				}
+//				System.out.print(word + "#" + pos + "  ");
+			}
+//			System.out.println();
+//			System.out.println(opinion.getSentenceScore("", sentence));
+			
+			// for each identified feature, update featureMap
+			for (String word : sfSet) {
+				double score = opinion.getSentenceScore(word, sentence);
+				
+				// check to see if we have any more sentences for this feature
+				ArrayList<FeatureMapData> featureFeedback = featureMap.get(word);
+				
+				if (featureFeedback == null) {
+					featureFeedback = new ArrayList<FeatureMapData>();
 				}
 				
-				System.out.print(word + "#" + pos + "  ");
+				// add a new sentence
+				featureFeedback.add(new FeatureMapData(sentence
+						.get(TextAnnotation.class), score, ((score >= 0) ? true : false)));
+				
+				featureMap.put(word, featureFeedback);
 			}
-			System.out.println();
-
+			
+			// add all new features to the review's featureSet
+			featureSet.addAll(sfSet);
 		}
 
 		for(String s:featureSet)
